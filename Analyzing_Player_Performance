@@ -1,0 +1,30 @@
+import pandas as pd
+
+df = pd.read_csv("/Users/Mary/Desktop/nba_player_stats.csv")
+df.head()
+
+# Filter stats for LeBron James
+lebron_stats = df[df["Player"] == "LeBron James"]
+print(lebron_stats)
+
+# Example Efficiency Calculation (Simplified)
+df["Efficiency"] = ((df["PTS"] + df["TRB"] + df["AST"] + df["STL"] + df["BLK"]) - 
+                    (df["FGA"] - df["FG"]) - (df["FTA"] - df["FT"]) - df["TOV"]) / df["G"]
+
+# Show LeBron's efficiency rating
+lebron_eff = df[df["Player"] == "LeBron James"]["Efficiency"]
+print(f"LeBron's Efficiency Rating: {lebron_eff.values[0]}")
+
+import matplotlib.pyplot as plt
+
+# Select top players based on efficiency
+top_players = df.nlargest(10, "Efficiency")
+
+# Create a bar chart
+plt.figure(figsize=(10, 5))
+plt.bar(top_players["Player"], top_players["Efficiency"], color="purple")
+plt.xlabel("Player")
+plt.ylabel("Efficiency Rating")
+plt.title("Top 10 NBA Players by Efficiency")
+plt.xticks(rotation=45)
+plt.show()
