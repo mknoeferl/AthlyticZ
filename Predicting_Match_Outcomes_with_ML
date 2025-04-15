@@ -1,0 +1,49 @@
+import pandas as pd
+
+df = pd.read_csv("/Users/Mary/Desktop/nba_games.csv")
+print(df.head())
+
+# Drop missing values
+df.dropna(inplace=True)
+
+# Encode 'Win' column as 1 or 0
+df["Win"] = df["PTS_home"] > df["PTS_away"]
+df["Win"] = df["Win"].astype(int)
+
+# Select features
+features = ["FG_PCT_home", "FG_PCT_away", "REB_home", "AST_home"]
+X = df[features]
+y = df["Win"]
+
+from sklearn.model_selection import train_test_split
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.metrics import accuracy_score
+
+# Split into train/test
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+
+# Train the model
+model = RandomForestClassifier(n_estimators=100, random_state=42)
+model.fit(X_train, y_train)
+
+# Make predictions
+y_pred = model.predict(X_test)
+
+# Check accuracy
+accuracy = accuracy_score(y_test, y_pred)
+print(f"Prediction Accuracy: {accuracy:.2f}")
+
+from sklearn.metrics import ConfusionMatrixDisplay
+
+ConfusionMatrixDisplay.from_estimator(model, X_test, y_test)
+
+# Example matchup
+new_game = pd.DataFrame([{
+    "FG_PCT_home": 0.48,
+    "FG_PCT_away": 0.45,
+    "REB_home": 44,
+    "AST_home": 25
+}])
+
+prediction = model.predict(new_game)
+print("Predicted Win" if prediction[0] == 1 else "Predicted Loss")
