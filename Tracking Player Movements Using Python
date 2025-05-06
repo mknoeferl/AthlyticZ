@@ -1,0 +1,136 @@
+import pandas as pd
+import numpy as np
+
+# --- Generate synthetic player tracking data ---
+
+# Create a sequence of 250 frame numbers (10 seconds at 25 FPS)
+frames = np.arange(250)
+
+# Simulate X and Y coordinates using cumulative random walk
+# Start near center court and apply small random movements per frame
+x = np.cumsum(np.random.normal(0, 5, size=250)) + 470  # center court
+y = np.cumsum(np.random.normal(0, 5, size=250)) + 250
+
+# Assign a fixed player ID (e.g., jersey number 23) to all frames
+player_id = [23] * 250
+
+# Create a DataFrame with the tracking data
+# Clip X and Y values to stay within the court boundaries (width: 0–940, height: 0–500)
+df = pd.DataFrame({
+    'frame': frames,
+    'player_id': player_id,
+    'x': x.clip(0, 940),  # Keep within court width
+    'y': y.clip(0, 500),  # Keep within court height
+})
+
+# Save the DataFrame to a CSV file (change the path if needed)
+df.to_csv("/Users/Mary/Desktop/player_tracking.csv", index=False)
+
+# Display the first few rows to verify the structure
+print(df.head())
+
+import matplotlib.pyplot as plt
+from matplotlib.patches import Arc
+import numpy as np
+import seaborn as sns
+
+# --- Court Drawing Function ---
+
+def draw_nba_court(axis=None):
+    """
+    Draws an NBA halfcourt using matplotlib primitives.
+
+    Args:
+        axis (matplotlib axis): Optional axis to draw on. Creates one if not provided.
+
+    Returns:
+        fig, axis: Figure and axis with the court drawn
+    """
+    if axis is None:
+        fig = plt.figure(figsize=(9, 9))
+        axis = fig.add_subplot(111, aspect='auto')
+    else:
+        fig = None
+
+    # --- Court Outline (Baseline, Sidelines, Halfcourt Line) ---
+    axis.plot([-250, 250], [-47.5, -47.5], 'k-')     # Baseline
+    axis.plot([-250, -250], [-47.5, 422.5], 'k-')    # Left sideline
+    axis.plot([250, 250], [-47.5, 422.5], 'k-')      # Right sideline
+    axis.plot([-250, 250], [422.5, 422.5], 'k-')     # Halfcourt line
+
+    # --- Backboard ---
+    axis.plot([-30, 30], [-10, -10], 'k-', lw=2)
+
+    # --- Paint / Lane ---
+    axis.plot([-80, -80], [-47.5, 142.5], 'k-')
+    axis.plot([80, 80], [-47.5, 142.5], 'k-')
+    axis.plot([-60, -60], [-47.5, 142.5], 'k-')
+    axis.plot([60, 60], [-47.5, 142.5], 'k-')
+    axis.plot([-80, 80], [142.5, 142.5], 'k-')     # Free throw line
+
+    # --- Hoop and Restricted Area ---
+    hoop = Arc((0, 0), 15, 15, theta1=0, theta2=360, lw=1.5, color='black')
+    restricted = Arc((0, 0), 80, 80, theta1=0, theta2=180, lw=1.5, color='black')
+    axis.add_patch(hoop)
+    axis.add_patch(restricted)
+
+    # --- Free Throw Circle ---
+    axis.add_patch(Arc((0, 142.5), 120, 120, theta1=0, theta2=180, lw=1.5, color='black'))     # Top half
+    axis.add_patch(Arc((0, 142.5), 120, 120, theta1=180, theta2=360, lw=1.5, linestyle='--', color='black'))  # Bottom half (dashed)
+
+    # --- 3-Point Lines ---
+    axis.plot([-220, -220], [-47.5, 92.5], 'k-')     # Left corner 3
+    axis.plot([220, 220], [-47.5, 92.5], 'k-')       # Right corner 3
+    axis.add_patch(Arc((0, 0), 475, 475, theta1=22, theta2=158, lw=1.5, color='black'))   # 3-pt arc
+
+    # --- Halfcourt Circle ---
+    axis.add_patch(Arc((0, 422.5), 122, 122, theta1=180, theta2=360, lw=1.5, color='black'))
+
+    # --- Axis Settings ---
+    axis.set_xlim(-250, 250)
+    axis.set_ylim(-47.5, 470)
+    axis.set_aspect(1)     # Equal aspect ratio
+    axis.axis('off')       # Hide axes
+
+    return fig, axis
+
+# Display the halfcourt drawing
+fig, ax = draw_nba_court()
+
+from IPython.display import clear_output
+import time
+
+# --- Function to convert pixel coordinates to NBA court coordinates (in feet) ---
+def pixel_to_court_coords(x_px, y_px):
+    # Map x from [0, 940] pixels to [-250, 250] feet (court width)
+    x_ft = (x_px / 940) * 500 - 250
+    # Map y from [0, 500] pixels to [-47.5, 470] feet (court length)
+    y_ft = (y_px / 500) * 517.5 - 47.5
+    return x_ft, y_ft
+
+# --- Loop through each frame to create the animation ---
+for frame_num in range(df['frame'].max()):
+    clear_output(wait=True)                   # Clear previous plot (for smooth playback in notebook)
+
+    fig, ax = plt.subplots(figsize=(10, 5))   # Set up new figure and axis for each frame
+
+    draw_nba_court(ax)                        # Draw the static NBA halfcourt layout
+
+    # Filter tracking data for the current frame
+    frame_data = df[df['frame'] == frame_num]
+
+    # Plot the player's position for the current frame
+    for _, row in frame_data.iterrows():
+        x_ft, y_ft = pixel_to_court_coords(row['x'], row['y'])
+
+        # Draw red dot for player position
+        ax.plot(x_ft, y_ft, 'ro', markersize=10)
+
+        # Label player with jersey number (slightly above the dot)
+        ax.text(x_ft, y_ft + 13, str(round(row['player_id'])), color='black', fontsize=8, ha='center')
+
+    ax.set_title(f"Frame {frame_num}")        # Frame label (optional)
+    ax.axis('off')                            # Hide axis ticks and borders for cleaner look
+    plt.show()                                # Display current frame
+
+    time.sleep(0.03)                          # Pause for 30 ms (~33 FPS)
