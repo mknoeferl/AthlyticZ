@@ -1,0 +1,61 @@
+import pandas as pd
+import numpy as np
+import matplotlib.pyplot as plt
+
+# ----------------------------
+# Step 1: Generate sample data
+# ----------------------------
+np.random.seed(42)  # reproducibility
+teams = ["Alabama", "Georgia", "Ohio State", "Michigan", "Texas", 
+         "Oregon", "Notre Dame", "LSU", "Clemson", "Penn State"]
+
+games = 12  # number of games per team
+data = []
+
+for team in teams:
+    points_scored = np.random.randint(20, 50, games)
+    points_allowed = np.random.randint(10, 40, games)
+    turnovers = np.random.randint(0, 3, games)
+
+    data.append({
+        "Team": team,
+        "Avg Points Scored": np.mean(points_scored),
+        "Avg Points Allowed": np.mean(points_allowed),
+        "Turnovers": np.sum(turnovers)
+    })
+
+df = pd.DataFrame(data)
+
+# ----------------------------
+# Step 2: Visualizations
+# ----------------------------
+
+# 1. Scatterplot: Offense vs Defense
+plt.figure(figsize=(8,6))
+plt.scatter(df["Avg Points Scored"], df["Avg Points Allowed"], s=150, alpha=0.7)
+
+for i, txt in enumerate(df["Team"]):
+    plt.annotate(txt, (df["Avg Points Scored"][i]+0.2, df["Avg Points Allowed"][i]+0.2))
+
+plt.title("College Football: Offense vs Defense (Avg Points per Game)")
+plt.xlabel("Average Points Scored (Offense)")
+plt.ylabel("Average Points Allowed (Defense)")
+plt.grid(True, linestyle="--", alpha=0.5)
+plt.show()
+
+# 2. Bar Chart: Top Scoring Teams
+df_sorted = df.sort_values("Avg Points Scored", ascending=False)
+
+plt.figure(figsize=(10,6))
+plt.bar(df_sorted["Team"], df_sorted["Avg Points Scored"], color="skyblue")
+plt.title("Top Scoring College Football Teams")
+plt.ylabel("Avg Points Scored per Game")
+plt.xticks(rotation=45)
+plt.show()
+
+# 3. Turnovers Comparison
+plt.figure(figsize=(10,6))
+plt.barh(df["Team"], df["Turnovers"], color="salmon")
+plt.title("Total Turnovers Committed")
+plt.xlabel("Turnovers")
+plt.show()
