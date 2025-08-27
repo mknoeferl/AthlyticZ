@@ -1,0 +1,39 @@
+import matplotlib.pyplot as plt
+import matplotlib.animation as animation
+import numpy as np
+from IPython.display import HTML
+
+# --- Field dimensions ---
+field_length = 100
+field_width = 60
+
+# --- Simulated ball coordinates ---
+t = np.linspace(0, 10, 200)
+x = 10 + 80 * (t / 10)
+y = 30 + 20 * np.sin(t)
+
+# --- Plot setup ---
+fig, ax = plt.subplots(figsize=(10, 6))
+ax.set_xlim(0, field_length)
+ax.set_ylim(0, field_width)
+ax.set_xlabel('Field Length (meters)')
+ax.set_ylabel('Field Width (meters)')
+ax.set_title('Soccer Ball Tracking')
+
+# Draw field
+field = plt.Rectangle((0, 0), field_length, field_width, edgecolor='green', facecolor='lightgreen', alpha=0.5)
+ax.add_patch(field)
+
+# Initialize ball
+ball, = ax.plot([], [], 'ro', markersize=10)
+
+# Animation function
+def animate(i):
+    ball.set_data(x[i], y[i])
+    return ball,
+
+# Create animation
+ani = animation.FuncAnimation(fig, animate, frames=len(t), interval=50, blit=True)
+
+# Display animation in notebook
+HTML(ani.to_jshtml())
