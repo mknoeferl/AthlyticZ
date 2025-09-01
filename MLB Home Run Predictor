@@ -1,0 +1,56 @@
+# MLB Home Run Predictor
+# Linear regression using height & weight to predict home runs
+
+import pandas as pd
+from sklearn.linear_model import LinearRegression
+import matplotlib.pyplot as plt
+from mpl_toolkits.mplot3d import Axes3D
+
+# -----------------------------
+# Step 1: Create a sample dataset
+# -----------------------------
+data = {
+    "Player": ["Aaron Judge", "Jose Altuve", "Mike Trout", "Mookie Betts", "Giancarlo Stanton",
+               "Juan Soto", "Vladimir Guerrero Jr.", "Shohei Ohtani", "Bryce Harper", "Pete Alonso"],
+    "Height_in": [79, 66, 74, 69, 78, 74, 74, 76, 75, 75],  # player heights in inches
+    "Weight_lb": [282, 166, 235, 180, 245, 224, 250, 210, 215, 245],  # player weights in pounds
+    "HRs": [62, 28, 40, 35, 59, 35, 48, 46, 35, 53]  # sample home runs in a season
+}
+
+df = pd.DataFrame(data)
+
+# Features (X) and target (y)
+X = df[["Height_in", "Weight_lb"]]
+y = df["HRs"]
+
+# -----------------------------
+# Step 2: Train the model
+# -----------------------------
+model = LinearRegression()
+model.fit(X, y)
+
+# Print coefficients
+print("Intercept:", model.intercept_)
+print("Coefficients:", model.coef_)
+
+# -----------------------------
+# Step 3: Make predictions
+# -----------------------------
+df["Predicted_HRs"] = model.predict(X)
+print(df[["Player", "HRs", "Predicted_HRs"]])
+
+# -----------------------------
+# Step 4: Visualize results
+# -----------------------------
+fig = plt.figure(figsize=(10, 6))
+ax = fig.add_subplot(111, projection="3d")
+
+ax.scatter(df["Height_in"], df["Weight_lb"], df["HRs"], c="red", label="Actual HRs")
+ax.scatter(df["Height_in"], df["Weight_lb"], df["Predicted_HRs"], c="green", label="Predicted HRs")
+
+ax.set_xlabel("Height (inches)")
+ax.set_ylabel("Weight (lbs)")
+ax.set_zlabel("Home Runs")
+ax.set_title("MLB Home Run Predictor")
+ax.legend()
+plt.show()
