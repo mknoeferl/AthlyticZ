@@ -1,0 +1,76 @@
+# app.R
+library(shiny)
+library(ggplot2)
+library(dplyr)
+
+# ---- Sample Data (replace with your own dataset) ----
+set.seed(123)
+player_stats <- data.frame(
+  Player = rep(c("Mike Trout", "Aaron Judge", "Mookie Betts"), each = 5),
+  Season = rep(2018:2022, times = 3),
+  Batting_Avg = round(runif(15, .250, .330), 3),
+  Home_Runs = sample(20:45, 15, replace = TRUE),
+  RBI = sample(60:110, 15, replace = TRUE)
+)
+
+# ---- UI ----
+ui <- fluidPage(
+  titlePanel("Pick a Player, See Their Stats"),
+  
+  sidebarLayout(
+    sidebarPanel(
+      selectInput("player", "Choose a Player:",
+                  choices = unique(player_stats$Player))
+    ),
+    
+    mainPanel(
+      h3("Player Summary"),
+      tableOutput("summaryTable"),
+      
+      h3("Batting Average Over Time"),
+      plotOutput("avgPlot"),
+      
+      h3("Home Runs Over Time"),
+      plotOutput("hrPlot")
+    )
+  )
+)
+
+# ---- Server ----
+server <- function(input, output) {
+  
+  # Filter data for chosen player
+  playerData <- reactive({
+    player_stats %>% filter(Player == input$player)
+  })
+  
+  # Summary Table
+  output$summaryTable <- renderTable({
+    playerData() %>%
+      summarise(
+        Avg_BA = mean(Batting_Avg),
+        Total_HR = sum(Home_Runs),
+        Total_RBI = sum(RBI)
+      )
+  })
+  
+  # Batting Average Plot
+  output$avgPlot <- renderPlot({
+    ggplot(playerData(), aes(x = Season, y = Batting_Avg)) +
+      geom_line(color = "blue", size = 1.2) +
+      geom_point(size = 3, color = "darkblue") +
+      labs(y = "Batting Average", x = "Season") +
+      theme_minimal()
+  })
+  
+  # Home Run Plot
+  output$hrPlot <- renderPlot({
+    ggplot(playerData(), aes(x = Season, y = Home_Runs)) +
+      geom_col(fill = "red") +
+      labs(y = "Home Runs", x = "Season") +
+      theme_minimal()
+  })
+}
+
+# ---- Run the App ----
+shinyApp(ui = ui, server = server)
