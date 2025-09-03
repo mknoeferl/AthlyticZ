@@ -1,0 +1,37 @@
+# Baseball Batting Averages in R
+# ----------------------------------------------------
+
+# Load libraries
+library(ggplot2)
+
+# 1. Create a sample dataset of batting averages
+set.seed(123)  # for reproducibility
+batting_averages <- data.frame(
+  Player = paste("Player", 1:30),
+  BattingAvg = round(rnorm(30, mean = 0.260, sd = 0.025), 3) # simulated batting averages
+)
+
+# 2. View first few rows
+head(batting_averages)
+
+# 3. Calculate mean and variance
+mean_avg <- mean(batting_averages$BattingAvg)
+variance_avg <- var(batting_averages$BattingAvg)
+
+cat("Mean batting average:", mean_avg, "\n")
+
+cat("Variance of batting averages:", variance_avg, "\n")
+
+# 4. Summary statistics
+summary(batting_averages$BattingAvg)
+
+# 5. Boxplot visualization with ggplot2
+ggplot(batting_averages, aes(x = "Batting Avg", y = BattingAvg)) +
+  geom_boxplot(fill = "lightblue", color = "darkblue") +
+  geom_hline(yintercept = mean_avg, linetype = "dashed", linewidth = 1, color = "red") +
+  labs(
+    title = "Distribution of Batting Averages",
+    x = "",
+    y = "Batting Average"
+  ) +
+  theme_minimal(base_size = 14)
