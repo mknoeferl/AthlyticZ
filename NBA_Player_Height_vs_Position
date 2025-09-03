@@ -1,0 +1,38 @@
+# Player Height vs Position – Scatterplot of NBA player heights grouped by position
+
+import pandas as pd
+import matplotlib.pyplot as plt
+
+# --- Step 1: Create sample dataset ---
+# Normally, you’d pull this from a database or API, but here we simulate it
+data = {
+    "Player": ["Stephen Curry", "Klay Thompson", "LeBron James", "Kevin Durant",
+               "Joel Embiid", "Chris Paul", "Giannis Antetokounmpo", "Nikola Jokic",
+               "Kyrie Irving", "Anthony Davis"],
+    "Position": ["PG", "SG", "SF", "SF",
+                 "C", "PG", "PF", "C",
+                 "PG", "PF"],
+    "Height_in": [75, 78, 81, 82,
+                  84, 72, 83, 84,
+                  74, 82]  # heights in inches
+}
+
+df = pd.DataFrame(data)
+
+# --- Step 2: Create scatterplot ---
+plt.figure(figsize=(8,6))
+
+# Group scatterplot by position
+for pos in df["Position"].unique():
+    subset = df[df["Position"] == pos]
+    plt.scatter(subset["Position"], subset["Height_in"], label=pos, s=100)
+
+# --- Step 3: Customize plot ---
+plt.title("NBA Player Height vs Position")
+plt.xlabel("Position")
+plt.ylabel("Height (inches)")
+plt.legend(title="Position")
+plt.grid(True, linestyle="--", alpha=0.6)
+
+# --- Step 4: Show plot ---
+plt.show()
